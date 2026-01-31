@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 
-// مهم جدًا عشان Vercel ما يحاولش يعمل static للـ API
 export const dynamic = "force-dynamic";
 
 export async function GET(req, { params }) {
-  const { type } = params;
+  const [type] = params.slug || []; // هنا بدل params.type
 
   try {
     if (type === "branches") {
@@ -22,7 +21,6 @@ export async function GET(req, { params }) {
       const ip = searchParams.get("ip");
 
       const SCRIPT_URL = `https://script.google.com/macros/s/AKfycby_k7_4L7w-F5Dg9w-pRHnVj0FluA1bixYug7iTFm-mS1JcmIm8y7cGrldOR91BszX-/exec?lat=${lat}&lon=${lon}&ua=${encodeURIComponent(ua)}&ip=${ip}`;
-
       const res = await fetch(SCRIPT_URL);
       const text = await res.text();
 
