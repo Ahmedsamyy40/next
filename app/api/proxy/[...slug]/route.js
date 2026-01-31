@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 
+// مهم جدًا على Vercel عشان ما يحاولش يعمل static للـ API
 export const dynamic = "force-dynamic";
 
 export async function GET(req) {
   const url = new URL(req.url);
-  const pathname = url.pathname; // /api/proxy/branches
-  const type = pathname.split("/").pop(); // آخر جزء
+  const pathname = url.pathname; // /api/proxy/branches أو /api/proxy/location
+  const slug = pathname.split("/"); // يقسم المسار
+  const type = slug[slug.length - 1]; // آخر جزء من المسار
 
   try {
     if (type === "branches") {
@@ -30,8 +32,14 @@ export async function GET(req) {
       });
     }
 
-    return NextResponse.json({ error: "Unknown proxy type" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Unknown proxy type" },
+      { status: 400 }
+    );
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message },
+      { status: 500 }
+    );
   }
 }
