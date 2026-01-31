@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="img/OZONE.png">
+  <title>خريطة فروع الأكاديمية</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+
+    /* 🟣 الخريطة */
+#map {
+  width: 100%;
+  height: calc(100vh - 80px);
+}
+@media (max-width: 768px) {
+  #map {
+    height: calc(100vh - 60px);
+  }
+}
+
+/* 🟣 البوب أب */
+.leaflet-popup-content-wrapper {
+  max-width: 320px !important;
+  border-radius: 12px;
+}
+.leaflet-popup-content {
+  font-size: 14px;
+  line-height: 1.5;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.info-window h3 {
+  font-size: 18px;
+  color: #6a1b9a;
+}
+.info-window p {
+  font-size: 14px;
+}
+.info-window a {
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+@media (max-width: 480px) {
+  .leaflet-popup-content-wrapper {
+    max-width: 90vw !important;
+  }
+  .info-window h3 {
+    font-size: 16px;
+  }
+  .info-window p {
+    font-size: 13px;
+  }
+  .info-window a {
+    font-size: 13px;
+    padding: 5px 8px;
+  }
+}
+
+/* 🟣 الزر + الراية */
+.floating-btn-wrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: row-reverse;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.floating-btn {
+  background: #6a1b9a;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+.floating-btn:hover { background: #50137a; }
+
+.flag-pole {
+  width: 4px;
+  height: 45px;
+  background: #6a1b9a;
+  position: relative;
+  margin-right: 35px;
+  margin-bottom: 18px;
+  z-index: 1002;
+}
+
+.flag {
+  position: absolute;
+  top: -5px;
+  right: 4px;
+  background: white;
+  color: #6a1b9a;
+  padding: 6px 12px;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  animation: waveLeft 2s infinite ease-in-out;
+  z-index: 1003;
+}
+
+/* 🟣 انيميشن الراية */
+@keyframes waveLeft {
+  0% { transform: rotate(0deg) skewX(0deg); }
+  25% { transform: rotate(-1deg) skewX(-3deg); }
+  50% { transform: rotate(1deg) skewX(3deg); }
+  75% { transform: rotate(-1deg) skewX(-3deg); }
+  100% { transform: rotate(0deg) skewX(0deg); }
+}
+
+/* 🟣 Responsive للزر والراية */
+@media (max-width: 480px) {
+  .floating-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  .flag {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  .flag-pole {
+    height: 35px;
+    margin-bottom: 15px;
+  }
+}
+
+    body { 
+      font-family: Arial, sans-serif; 
+      direction: rtl; 
+      background: #f8f8f8; 
+      margin: 0;
+      padding: 0;
+    }
+    h2 { text-align:center; padding: 10px; }
+    #map { 
+      width: 100%; 
+      height: 80vh; 
+      margin: 0 auto; 
+    }
+    .info-window h3 { 
+      margin: 0; 
+      color: #6a1b9a; 
+      font-size: 18px;
+    }
+    .info-window p { 
+      margin: 5px 0; 
+      font-size: 14px;
+    }
+    .btn-call, .btn-whatsapp, .btn-directions {
+      display: inline-block;
+      padding: 5px 10px;
+      text-decoration: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 13px;
+      margin-right: 5px;
+    }
+    .btn-call { background: #28a745; }
+    .btn-whatsapp { background: #25D366; }
+    .btn-directions { background: #007bff; margin-top: 5px; display: inline-block; }
+    .floating-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #6a1b9a;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .floating-btn:hover { background: #50137a; }
+
+/* الحاوية */
+.floating-btn-wrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: flex-end; /* يخلي العصاية أعلى الزر */
+  flex-direction: row-reverse;
+  gap: 8px;
+  z-index: 1000;
+}
+
+/* الزر */
+.floating-btn {
+  background: #6a1b9a;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001; /* أقل من الراية */
+}
+.floating-btn:hover { background: #50137a; }
+
+/* العصاية */
+.flag-pole {
+  width: 4px;
+  height: 45px;
+  background: #6a1b9a;
+  position: relative;
+  margin-right: 35px;
+  margin-bottom: 18px; /* ترفع العصاية أعلى */
+  z-index: 1002;
+}
+
+/* الراية */
+.flag {
+  position: absolute;
+  top: -5px; /* ترفع الراية فوق العصاية */
+  right: 4px;
+  background: white;
+  color: #6a1b9a;
+  padding: 6px 12px;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  animation: waveLeft 2s infinite ease-in-out;
+  z-index: 1003;
+}
+
+/* تموج الراية */
+@keyframes waveLeft {
+  0% { transform: rotate(0deg) skewX(0deg); }
+  25% { transform: rotate(-1deg) skewX(-3deg); }
+  50% { transform: rotate(1deg) skewX(3deg); }
+  75% { transform: rotate(-1deg) skewX(-3deg); }
+  100% { transform: rotate(0deg) skewX(0deg); }
+}
+
+
+/* تموج الراية بالعكس */
+@keyframes waveLeft {
+  0% { transform: rotate(0deg) skewX(0deg); }
+  25% { transform: rotate(-1deg) skewX(-3deg); }
+  50% { transform: rotate(1deg) skewX(3deg); }
+  75% { transform: rotate(-1deg) skewX(-3deg); }
+  100% { transform: rotate(0deg) skewX(0deg); }
+}
+
+
+
+
+
+
+
+
+#branch-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+  max-width: 1200px;  /* أقصى عرض للقائمة */
+  margin: 0 auto;
+}
+
+.branch-card {
+  flex: 1 1 280px;   /* الحجم الأساسي 280px، ينكمش أو يتوسع */
+  max-width: 300px;  /* أقصى عرض لكل بطاقة */
+  min-width: 250px;  /* أقل عرض لكل بطاقة */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.branch-card a {
+  flex: 1 1 120px;   /* حجم أساسي للزر */
+  max-width: 140px;  /* أقصى عرض */
+  min-width: 100px;  /* أقل عرض */
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+
+
+
+  </style>
+</head>
+<body>
+
+
+<h2>🗺️ خريطة فروع الأكاديمية</h2>
+<div style="text-align:center; margin: 10px 0;">
+  <input type="text" id="branch-search" placeholder="ابحث باسم الفرع، المنطقة، المدير، رقم الهاتف أو المواعيد..." 
+         style="width:90%; max-width:500px; padding:8px 12px; border-radius:8px; border:1px solid #ccc; font-size:14px;">
+</div>
+<div id="map" style="height:500px; width:100%; margin-bottom:20px;"></div>
+
+<div class="floating-btn-wrapper">
+  <div class="flag-pole">
+    <div class="flag">اضغط هنا لعرض تفاصيل أقرب فرع لموقعك</div>
+  </div>
+  <button class="floating-btn" onclick="reLocate()">📍</button>
+</div>
+
+<h2 style="margin-top:20px;">📋 قائمة الفروع</h2>
+<div id="branch-list" style="display:flex; flex-direction:column; gap:15px; padding:10px;"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+const API_URL = "/api/proxy/branches";      // كل البيانات العامة للفروع
+const location_api = "/api/proxy/location"; // حفظ موقع المستخدم
+
+
+let map, markers = [], userLat, userLng, userMarker = null, locationPermissionDenied = false;
+let nearestBranch = null;
+
+const AREA_NAMES = [
+  "فروع الشيخ زايد",
+  "فروع أكتوبر",
+  "فروع حدائق أكتوبر",
+  "فروع الجيزة وفيصل والهرم",
+  "فروع القاهرة",
+  "فروع المحافظات"
+];
+
+// ======== INIT EVERYTHING ON PAGE LOAD ========
+window.addEventListener("load", () => {
+  initMap();      // خرائط الفروع
+  trackLocation(); // تتبع لوكيشن المستخدم
+});
+function trackLocation() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(success, error);
+
+  function success(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    const ua = navigator.userAgent;
+
+    // 🌐 جلب الـ IP من Cloudflare
+    fetch("https://www.cloudflare.com/cdn-cgi/trace")
+      .then(res => res.text())
+      .then(text => {
+        const ipMatch = text.match(/ip=([^\n]+)/);
+        const ip = ipMatch ? ipMatch[1] : "Unknown";
+
+        sendData(lat, lon, ua, ip);
+      })
+      .catch(() => {
+        sendData(lat, lon, ua, "Unknown");
+      });
+
+    function sendData(lat, lon, ua, ip) {
+      const now = Date.now();
+      const lastSent = localStorage.getItem("lastLocationSent") || 0;
+
+      if (now - lastSent < 60000) {
+        console.log("❌ تم إرسال الموقع بالفعل خلال الدقيقة الماضية، تجاهل العملية.");
+      } else {
+        localStorage.setItem("lastLocationSent", now);
+        fetch(`${location_api}?lat=${lat}&lon=${lon}&ua=${encodeURIComponent(ua)}&ip=${ip}`)
+          .then(res => res.text())
+          .then(() => console.log("تم حفظ الموقع بنجاح"))
+          .catch(err => console.error(err));
+      }
+    }
+
+    userLat = lat;
+    userLng = lon;
+  }
+
+  function error(err) {
+    console.warn("تعذر الوصول للموقع:", err);
+  }
+}
+
+
+// ======== INIT MAP FUNCTION ========
+async function initMap() {
+  showLoading();
+  try {
+    const res = await fetch(API_URL, { cache: "no-store" });
+    const data = await res.json();
+    renderMap(data);
+    renderBranchList(data);
+  } catch(e) {
+    console.error("فشل تحميل البيانات:", e);
+  } finally {
+    hideLoading();
+  }
+}
+
+// ======== RENDER MAP ========
+function renderMap(data) {
+  if (!map) {
+    map = L.map('map').setView([30.0444, 31.2357], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; Carto &copy; OpenStreetMap',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+  }
+
+  markers.forEach(m => map.removeLayer(m.marker));
+  markers = [];
+
+  data.forEach(branch => {
+    if (!branch.latitude || !branch.longitude || branch.latitude == 0 || branch.longitude == 0) return;
+
+    const iconHtml = `
+      <div style="text-align:center;cursor:pointer;">
+        <img src="${branch.logoURL || 'img/logo.jpg'}" style="width:40px;height:40px;display:block;margin:0 auto;">
+        <div style="color:#6a1b9a;font-weight:bold;font-size:12px;margin-top:2px;white-space:nowrap;">
+          ${branch.branchName}
+        </div>
+      </div>
+    `;
+
+    const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [40, 55], iconAnchor: [20, 40] });
+    const marker = L.marker([branch.latitude, branch.longitude], { icon }).addTo(map);
+
+    markers.push({ marker, branch });
+    marker.bindPopup(() => createPopupContent(branch));
+    marker.on("click", () => marker.openPopup());
+  });
+
+  locateUser();
+}
+
+// ======== RENDER BRANCH LIST ========
+function renderBranchList(data) {
+  const container = document.getElementById("branch-list");
+  container.innerHTML = "";
+
+  let currentAreaIndex = -1;
+  let areaDiv = null;
+
+  data.forEach(branch => {
+    if (!branch.branchName || !branch.managerPhone || !branch.managerName) return;
+
+    if (branch.branchName.includes("/")) {
+      currentAreaIndex++;
+      if (currentAreaIndex >= AREA_NAMES.length) currentAreaIndex = AREA_NAMES.length - 1;
+      areaDiv = document.createElement("div");
+      areaDiv.className = "area-section";
+      areaDiv.innerHTML = `<h2 class="area-title">${AREA_NAMES[currentAreaIndex]}</h2>`;
+      container.appendChild(areaDiv);
+      return;
+    }
+
+    if (!areaDiv) {
+      currentAreaIndex = 0;
+      areaDiv = document.createElement("div");
+      areaDiv.className = "area-section";
+      areaDiv.innerHTML = `<h2 class="area-title">${AREA_NAMES[currentAreaIndex]}</h2>`;
+      container.appendChild(areaDiv);
+    }
+
+    const phones = branch.managerPhone.split("-").map(p => p.trim());
+    const names = branch.managerName.split("-").map(n => n.trim());
+
+    const branchCard = document.createElement("div");
+    branchCard.className = "branch-card";
+
+    const contactHTML = phones.map((phone, i) => `
+      <div class="branch-contact">
+        <a href="tel:${phone}" class="btn-call">📞 ${names[i] || ''}</a>
+        <a href="https://wa.me/${phone.replace(/^0/, '+20')}" target="_blank" class="btn-whatsapp">💬 واتساب</a>
+      </div>
+    `).join("");
+
+    branchCard.innerHTML = `
+      <h3 class="branch-name">${branch.branchName}</h3>
+      <p class="branch-address">📍 ${branch.address.replace(/\n/g,"<br>")}</p>
+      ${branch.distance ? `<p class="branch-distance">📏 يبعد حوالي ${branch.distance.toFixed(2)} كم</p>` : ""}
+      ${contactHTML}
+    `;
+
+    areaDiv.appendChild(branchCard);
+  });
+}
+
+// ======== SEARCH ========
+const searchInput = document.getElementById("branch-search");
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.trim().toLowerCase();
+
+  const filteredBranches = markers.map(m => m.branch).filter(b => {
+    const fields = [
+      b.branchName,
+      b.managerName,
+      b.managerPhone,
+      b.address,
+      b.trainingDays,
+      b.trainingTimes,
+      b.notes,
+      b.memberPrice,
+      b.nonMemberPrice
+    ].join(" ").toLowerCase();
+
+    return fields.includes(query);
+  });
+
+  markers.forEach(m => {
+    if (filteredBranches.includes(m.branch)) {
+      map.addLayer(m.marker);
+    } else {
+      map.removeLayer(m.marker);
+    }
+  });
+
+  renderBranchList(filteredBranches);
+});
+
+// ======== POPUP CONTENT ========
+function createPopupContent(branch) {
+  const phones = branch.managerPhone.split("-").map(p => p.trim());
+  const names = branch.managerName.split("-").map(n => n.trim());
+
+  const distanceText = branch.distance 
+    ? `<p style="margin:-5px 0 10px; color:#6a1b9a; font-weight:bold;">
+       📏  الفرع يبعد حوالي ${branch.distance.toFixed(2)} كم عن موقعك الحالي
+       </p>` 
+    : "";
+
+  let phoneLinks = phones.map((phone, i) => `
+    <p style="margin:4px 0; display:flex; align-items:center; gap:5px;">
+      📞 ${names[i] || ''} 
+<a href="https://wa.me/${phone.replace(/^0/, '+20')}" target="_blank"
+        style="background:#25D366; color:white; padding:4px 8px; border-radius:5px; 
+              text-decoration:none; font-size:14px; margin-right:auto;">
+        واتساب
+      </a>
+    </p>
+  `).join('');
+
+  const notesHTML = branch.notes 
+    ? `<p><strong>ℹ️ ملاحظات:</strong><br>${branch.notes.replace(/\n/g, "<br>")}</p>` 
+    : "";
+
+  const formHTML = branch.formLink 
+    ? `<p><a href="${branch.formLink}" target="_blank" style="color:#007bff; text-decoration:none;">📝 رابط استمارة التسجيل للإشتراك بالأكاديمية</a></p>` 
+    : "";
+
+  return `
+    <div class="info-window" style="font-family:Arial; font-size:14px; line-height:1.6; direction:rtl; text-align:right;">
+      <h3 style="margin-bottom:5px; color:#6a1b9a;">${branch.branchName}</h3>
+      ${distanceText}
+      <p><strong>📅 أيام التدريب:</strong><br>${branch.trainingDays.replace(/\n/g, "<br>")}</p>
+      <p><strong>🕒 مواعيد التدريب:</strong><br>${branch.trainingTimes.replace(/\n/g, "<br>")}</p>
+      ${notesHTML}
+      <p><strong>💰 الاشتراك للأعضاء:</strong> ${branch.memberPrice} ج</p>
+      <p><strong>💵 الاشتراك لغير الأعضاء:</strong> ${branch.nonMemberPrice} ج</p>
+      <p><strong>📍 العنوان:</strong><br>${branch.address.replace(/\n/g, "<br>")}</p>
+      ${formHTML}
+      <hr style="border:0; border-top:1px solid #ccc; margin:8px 0;">
+      ${phoneLinks}
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <a href="tel:${phones[0]}" 
+          style="flex:1; text-align:center; background:#28a745; color:white; padding:8px; 
+                border-radius:8px; text-decoration:none; font-weight:bold; display:flex; 
+                align-items:center; justify-content:center; gap:5px;">
+          📞 اتصال
+        </a>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=${userLat || ""},${userLng || ""}&destination=${branch.latitude},${branch.longitude}" 
+          target="_blank" 
+          style="flex:1; text-align:center; background:#007bff; color:white; padding:8px; 
+                border-radius:8px; text-decoration:none; font-weight:bold; display:flex; 
+                align-items:center; justify-content:center; gap:5px;">
+          📍 اللوكيشن
+        </a>
+      </div>
+    </div>`;
+}
+
+// ======== LOCATE USER & NEAREST BRANCH ========
+function locateUser() {
+  if (!navigator.geolocation) return;
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+
+    if (userMarker) userMarker.setLatLng([userLat, userLng]);
+    else userMarker = L.marker([userLat, userLng]).addTo(map)
+        .bindPopup("📍 هذا موقعك الحالي");
+
+    if (markers.length === 0) return;
+
+    let nearest = markers[0];
+    let minDist = calcDistance(userLat, userLng, nearest.branch.latitude, nearest.branch.longitude);
+
+    markers.forEach(m => {
+      const dist = calcDistance(userLat, userLng, m.branch.latitude, m.branch.longitude);
+      m.branch.distance = dist;
+      if (dist < minDist) { minDist = dist; nearest = m; }
+    });
+
+    nearestBranch = nearest;
+    map.setView([nearest.branch.latitude, nearest.branch.longitude], 13);
+    nearest.marker.openPopup();
+  });
+}
+
+// ======== RELOCATE BUTTON ========
+function reLocate() {
+  if (!navigator.geolocation) {
+    alert("❌ جهازك لا يدعم تحديد الموقع.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      locationPermissionDenied = false;
+
+      if (userMarker) userMarker.setLatLng([userLat, userLng]);
+      else userMarker = L.marker([userLat, userLng]).addTo(map)
+          .bindPopup("📍 هذا موقعك الحالي");
+
+      if (markers.length > 0) {
+        let nearest = markers[0];
+        let minDist = calcDistance(userLat, userLng, nearest.branch.latitude, nearest.branch.longitude);
+
+        markers.forEach(m => {
+          const dist = calcDistance(userLat, userLng, m.branch.latitude, m.branch.longitude);
+          if (dist < minDist) { minDist = dist; nearest = m; }
+        });
+
+        map.setView([userLat, userLng], 13);
+        nearest.marker.openPopup();
+      }
+    },
+    (error) => {
+      if (error.code === error.PERMISSION_DENIED) {
+        locationPermissionDenied = true;
+        alert("⚠️ تم رفض إذن الموقع. يرجى السماح من إعدادات المتصفح لإظهار أقرب فرع.");
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        alert("❌ لا يمكن تحديد الموقع حالياً. تأكد أن GPS يعمل.");
+      } else if (error.code === error.TIMEOUT) {
+        alert("⏳ فشل تحديد الموقع بسبب انتهاء المهلة. حاول مرة أخرى.");
+      } else {
+        alert("❌ تعذر تحديد الموقع. حاول مرة أخرى.");
+      }
+    },
+    { enableHighAccuracy: true }
+  );
+
+  if (locationPermissionDenied) {
+    alert("⚠️ يجب السماح بإذن الموقع من إعدادات المتصفح لاستخدام هذه الميزة.");
+  }
+}
+
+// ======== HELPER FUNCTIONS ========
+function calcDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function showLoading() {
+  const loader = document.createElement("div");
+  loader.id = "loading";
+  loader.innerText = "⏳ جاري تحميل بيانات الفروع...";
+  loader.style.cssText = `
+    position: fixed; top: 10px; right: 10px; 
+    background: #6a1b9a; color: white; padding: 8px 12px; 
+    border-radius: 6px; z-index: 1000; font-size: 14px;
+  `;
+  document.body.appendChild(loader);
+}
+
+function hideLoading() {
+  const loader = document.getElementById("loading");
+  if (loader) loader.remove();
+}
+</script>
+
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,6 @@
+{
+  "/api/proxy/branches/route": "app/api/proxy/branches/route.js",
+  "/api/proxy/location/route": "app/api/proxy/location/route.js",
+  "/map/page": "app/map/page.js",
+  "/page": "app/page.js"
+}

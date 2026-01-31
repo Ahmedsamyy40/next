@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/HP/Desktop/menu%20next%20-%20Copy/app/page.jsx"],"sourcesContent":["export default function Page() {\r\n  return (\r\n    <iframe\r\n      src=\"/map.html\"\r\n      style={{\r\n        width: \"100vw\",\r\n        height: \"100vh\",\r\n        border: \"none\",\r\n      }}\r\n    />\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QACC,KAAI;QACJ,OAAO;YACL,OAAO;YACP,QAAQ;YACR,QAAQ;QACV;;;;;;AAGN"}}]
+}
