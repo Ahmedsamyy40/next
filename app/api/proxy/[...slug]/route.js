@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req, { params }) {
-  const [type] = params.slug || []; // هنا بدل params.type
+export async function GET(req) {
+  const url = new URL(req.url);
+  const pathname = url.pathname; // /api/proxy/branches
+  const type = pathname.split("/").pop(); // آخر جزء
 
   try {
     if (type === "branches") {
@@ -14,11 +16,10 @@ export async function GET(req, { params }) {
     }
 
     if (type === "location") {
-      const { searchParams } = new URL(req.url);
-      const lat = searchParams.get("lat");
-      const lon = searchParams.get("lon");
-      const ua = searchParams.get("ua");
-      const ip = searchParams.get("ip");
+      const lat = url.searchParams.get("lat");
+      const lon = url.searchParams.get("lon");
+      const ua = url.searchParams.get("ua");
+      const ip = url.searchParams.get("ip");
 
       const SCRIPT_URL = `https://script.google.com/macros/s/AKfycby_k7_4L7w-F5Dg9w-pRHnVj0FluA1bixYug7iTFm-mS1JcmIm8y7cGrldOR91BszX-/exec?lat=${lat}&lon=${lon}&ua=${encodeURIComponent(ua)}&ip=${ip}`;
       const res = await fetch(SCRIPT_URL);
@@ -29,15 +30,8 @@ export async function GET(req, { params }) {
       });
     }
 
-    return NextResponse.json(
-      { error: "Unknown proxy type" },
-      { status: 400 }
-    );
-
+    return NextResponse.json({ error: "Unknown proxy type" }, { status: 400 });
   } catch (err) {
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
