@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// مهم جدًا عشان Vercel ما يحاولش يعمل static للـ API
+export const dynamic = "force-dynamic";
+
 export async function GET(req, { params }) {
   const { type } = params;
 
